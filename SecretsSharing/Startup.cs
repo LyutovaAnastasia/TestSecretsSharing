@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,13 +7,12 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using SecretsSharing.Data;
+using SecretsSharing.Data.Models;
 using SecretsSharing.Data.Repository;
+using SecretsSharing.Data.Repository.impl;
+using SecretsSharing.DTO;
 using SecretsSharing.Service;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using SecretsSharing.Service.impl;
 
 namespace SecretsSharing
 {
@@ -39,8 +36,10 @@ namespace SecretsSharing
 
 
             services.AddControllers();
-            services.AddTransient<TextFileRepository>();
-            services.AddTransient<TextFileService>();
+            services.AddTransient<IRepository<TextFile>, TextFileRepository>();
+            services.AddTransient<IRepository<DocumentFile>, DocumentFileRepository>();
+            services.AddTransient<IService<TextFileDTO, UrlResponse> , TextFileService>();
+            services.AddTransient<DocumentFileService>();
 
             // Config DBContext with PostgreSQl
             services.AddDbContext<AppDbContext>(options => options.UseNpgsql(DbConnectionString));

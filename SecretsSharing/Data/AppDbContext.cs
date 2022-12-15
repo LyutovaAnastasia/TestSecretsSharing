@@ -12,5 +12,6 @@ namespace SecretsSharing.Data
 
         public DbSet<User> Users { get; set; }
         public DbSet<TextFile> TextFiles { get; set; }
+        public DbSet<DocumentFile> DocumentFiles { get; set; }
     }
 }

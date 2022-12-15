@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SecretsSharing.Data.Models;
-using SecretsSharing.Data.Repository;
 using System.Collections.Generic;
-using System.Text;
 using System;
-using SecretsSharing.Service;
 using SecretsSharing.DTO;
-using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Http;
+using System.Threading.Tasks;
+using SecretsSharing.Service.impl;
+using SecretsSharing.Service;
 
 namespace SecretsSharing.Controllers
 {
@@ -15,38 +12,37 @@ namespace SecretsSharing.Controllers
     [Route("rest/text")]
     public class TextFileController : ControllerBase
     {
-        private readonly TextFileService _textFileService;
+        private readonly IService<TextFileDTO, UrlResponse> _service;
         //MjZjODU3MjItN2FjZS0xMWVkLWExZWItMDI0MmFjMTIwMDAy
 
-        public TextFileController(TextFileService textFileService)
+        public TextFileController(IService<TextFileDTO, UrlResponse> service)
         {
-            _textFileService = textFileService;
+            _service = service;
         }
 
-        [HttpGet("{url}")]
-        public TextDTO GetTextFile(string url)
+        [HttpGet("download/{key}")]
+        public async Task<TextFileDTO> DownloadAsync(string key)
         {    
-            return _textFileService.GetTextFile(url);
+            return await _service.DownloadAsync(key);
         }
 
-        [HttpGet("getfiles/{userId}")]
-        public IEnumerable<TextFileDTO> GetTextFileAllByUserId(Guid userId)
+        [HttpGet("getAll/{userId}")]
+        public async Task<IEnumerable<TextFileDTO>> GetFilesAsync(Guid userId)
         {
-            return _textFileService.GetTextFileAllByUserId(userId);
+            return await _service.GetFilesAsync(userId);
         }
 
-        [HttpPost("create")]
-        public UrlResponse CreateTextFile(TextFileDTO textFileDTO)
+        [HttpPost("upload")]
+        public async Task<UrlResponse> UploadAsync(TextFileDTO textFileDTO)
         {
-            return _textFileService.CreateTextFile(textFileDTO);
+            return await _service.UploadAsync(textFileDTO);
         }
 
-        //[HttpDelete]
-        //public IEnumerable<TextFile> DeleteTextFile()
-        //{
-
-        //    return _textFileRepository.GetTextFile();
-        //}
+        [HttpDelete("delete/{key}")]
+        public async Task DeleteAsync(string key)
+        {
+           await _service.DeleteAsync(key);
+        }
 
     }
 }
