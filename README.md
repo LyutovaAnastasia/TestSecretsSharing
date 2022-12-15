@@ -17,4 +17,5 @@ Main workflow / functionality:
 3. Anonymous users can:
     a. Access files/texts using the URLs generated from steps 2.a, 2.b
 
-#### На данный момент я сделала репо, сервис, контроллер для работы с текстом (сущность TextFile)
+#### На данный моемнт созданы сущности DocumentFile, TextFile репо, сервисы и контроллеры для них
+#### Из глобального осталось сделать связь One to many с User и DocumentFile, TextFile, а также сделать регистрацию
