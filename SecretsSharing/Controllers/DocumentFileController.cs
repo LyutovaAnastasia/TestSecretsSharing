@@ -20,7 +20,7 @@ namespace SecretsSharing.Controllers
         private readonly DocumentFileService _service;
         private readonly IConfiguration _iconfiguration;
 
-        //
+        // user 58e707b7-22ec-478e-8f0b-124a35e98b65
 
         public DocumentFileController(DocumentFileService service, IConfiguration iconfiguration)
         {
@@ -49,11 +49,11 @@ namespace SecretsSharing.Controllers
             return await _service.GetFilesAsync(userId);
         }
 
-        [HttpPost("upload")]
-        public async Task<IActionResult> UploadAsync(IFormFile file)
+        [HttpPost("upload/{userId}")]
+        public async Task<IActionResult> UploadAsync(Guid userId, IFormFile file)
         {
-            var result = await _service.UploadAsync(file);
-            return result != null ? Ok(result) : BadRequest(new { message = "Empty file" });  
+            var result = await _service.UploadAsync(userId, file);
+            return result != null ? Ok(new { result }) : BadRequest(new { message = "Empty file" });  
         }
 
 

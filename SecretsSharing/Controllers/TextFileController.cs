@@ -12,10 +12,10 @@ namespace SecretsSharing.Controllers
     [Route("rest/text")]
     public class TextFileController : ControllerBase
     {
-        private readonly IService<TextFileDTO, UrlResponse> _service;
-        //MjZjODU3MjItN2FjZS0xMWVkLWExZWItMDI0MmFjMTIwMDAy
+        private readonly TextFileService _service;
+        // user 58e707b7-22ec-478e-8f0b-124a35e98b65
 
-        public TextFileController(IService<TextFileDTO, UrlResponse> service)
+        public TextFileController(TextFileService service)
         {
             _service = service;
         }
@@ -32,10 +32,11 @@ namespace SecretsSharing.Controllers
             return await _service.GetFilesAsync(userId);
         }
 
-        [HttpPost("upload")]
-        public async Task<UrlResponse> UploadAsync(TextFileDTO textFileDTO)
+        [HttpPost("upload/{userId}")]
+        public async Task<ActionResult> UploadAsync(Guid userId, TextFileRequestDTO textFileRequestDTO)
         {
-            return await _service.UploadAsync(textFileDTO);
+            var result = await _service.UploadAsync(userId, textFileRequestDTO);
+            return result != null ? Ok( new { result }) : BadRequest();
         }
 
         [HttpDelete("delete/{key}")]

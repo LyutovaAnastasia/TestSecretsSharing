@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace SecretsSharing.Data.Repository.impl
 {
-    public class TextFileRepository : IRepository<TextFile>
+    public class TextFileRepository : IFileRepository<TextFile>
     {
         private readonly AppDbContext _context;
 
@@ -46,7 +46,7 @@ namespace SecretsSharing.Data.Repository.impl
             {
                 if (userId != Guid.Empty)
                 {
-                    return await _context.TextFiles.ToListAsync() ?? null;
+                    return await _context.TextFiles.Where(t => t.UserId == userId).ToListAsync() ?? null;
                 }
                 else
                 {

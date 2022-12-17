@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace SecretsSharing.Data.Repository
 {
-    public interface IRepository<T>
+    public interface IFileRepository<T>
     {
         public Task<T> GetByIdAsync(Guid id);
         public Task<IEnumerable<T>> GetAllByUserIdAsync(Guid userId);

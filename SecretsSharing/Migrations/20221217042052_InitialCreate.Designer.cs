@@ -10,8 +10,8 @@ using SecretsSharing.Data;
 namespace SecretsSharing.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20221214172613_DocumentFile")]
-    partial class DocumentFile
+    [Migration("20221217042052_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,6 +20,31 @@ namespace SecretsSharing.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63)
                 .HasAnnotation("ProductVersion", "5.0.17")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
+
+            modelBuilder.Entity("SecretsSharing.Data.Models.DocumentFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("AddDate")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("FilePath")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("DocumentFiles");
+                });
 
             modelBuilder.Entity("SecretsSharing.Data.Models.TextFile", b =>
                 {
@@ -36,7 +61,12 @@ namespace SecretsSharing.Migrations
                     b.Property<string>("Text")
                         .HasColumnType("text");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("TextFiles");
                 });
@@ -59,6 +89,28 @@ namespace SecretsSharing.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("SecretsSharing.Data.Models.DocumentFile", b =>
+                {
+                    b.HasOne("SecretsSharing.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("SecretsSharing.Data.Models.TextFile", b =>
+                {
+                    b.HasOne("SecretsSharing.Data.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 #pragma warning restore 612, 618
         }

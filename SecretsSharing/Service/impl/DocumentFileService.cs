@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SecretsSharing.Data.Models;
@@ -18,20 +17,24 @@ namespace SecretsSharing.Service.impl
 {
     public class DocumentFileService
     {
-        private readonly IRepository<DocumentFile> _repository;
+        private readonly IFileRepository<DocumentFile> _repository;
         private readonly IConfiguration _iconfiguration;
         private readonly ILogger<DocumentFileService> _logger;
+        private readonly UserRepository _userRepository;
 
         private string[] permittedExtensions = { ".txt", ".pdf" };
         private readonly long _fileSizeLimit;
 
-        public DocumentFileService(IRepository<DocumentFile> repository,
-                                   IConfiguration iconfiguration, ILogger<DocumentFileService> logger)
+        public DocumentFileService(IFileRepository<DocumentFile> repository,
+                                   IConfiguration iconfiguration,
+                                   ILogger<DocumentFileService> logger,
+                                   UserRepository userRepository)
         {
             _repository = repository;
             _iconfiguration = iconfiguration;
             _logger = logger;
             _fileSizeLimit = _iconfiguration.GetValue<long>("FileSizeLimit");
+            _userRepository = userRepository;
         }
 
         public async Task<DocumentFile> DownloadAsync(string key)
@@ -45,7 +48,7 @@ namespace SecretsSharing.Service.impl
             return null;
         }
 
-        public async Task<UrlResponse> UploadAsync(IFormFile file)
+        public async Task<string> UploadAsync(Guid userId, IFormFile file)
         {
    
             string filePath = null;
@@ -54,21 +57,26 @@ namespace SecretsSharing.Service.impl
                 _logger.LogInformation("Start upload file.");
                 if (ValidateFile(file))
                 {
-                   
-                  
                     filePath = CreateFilePath(file);
 
                     using (var stream = File.Create(Path.Combine(_iconfiguration["StoredFiles"], filePath)))
                     {
                         await file.CopyToAsync(stream);
                     }
-                   
+
+                    var user = await _userRepository.GetByIdAsync(userId);
+                    if (user == null)
+                    {
+                        Console.WriteLine("throw");
+                    }
+
                     var documentFile = new DocumentFile()
                     {
                         Id = Guid.NewGuid(),
                         Name = Path.GetFileName(file.FileName),
                         FilePath = filePath,
                         AddDate = DateTime.Now,
+                        User = user,
 
                     };
 
@@ -78,10 +86,7 @@ namespace SecretsSharing.Service.impl
                                  .ToString(documentFile.Id)));
 
                     _logger.LogInformation("Finish upload file. File success uploaded.");
-                    return new UrlResponse()
-                    {
-                        Url = url
-                    };
+                    return url;
                 }
                 return null;
             }

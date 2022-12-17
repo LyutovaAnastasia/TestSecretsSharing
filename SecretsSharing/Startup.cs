@@ -36,10 +36,12 @@ namespace SecretsSharing
 
 
             services.AddControllers();
-            services.AddTransient<IRepository<TextFile>, TextFileRepository>();
-            services.AddTransient<IRepository<DocumentFile>, DocumentFileRepository>();
-            services.AddTransient<IService<TextFileDTO, UrlResponse> , TextFileService>();
+            services.AddTransient<IFileRepository<TextFile>, TextFileRepository>();
+            services.AddTransient<IFileRepository<DocumentFile>, DocumentFileRepository>();
+            //services.AddTransient<IService<TextFileDTO, UrlResponse> , TextFileService>();
             services.AddTransient<DocumentFileService>();
+            services.AddTransient<TextFileService>();
+            services.AddTransient<UserRepository>();
 
             // Config DBContext with PostgreSQl
             services.AddDbContext<AppDbContext>(options => options.UseNpgsql(DbConnectionString));

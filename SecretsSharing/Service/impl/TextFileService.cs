@@ -10,14 +10,17 @@ using System.Threading.Tasks;
 
 namespace SecretsSharing.Service.impl
 {
-    public class TextFileService : IService<TextFileDTO, UrlResponse>
+    public class TextFileService
     {
-        private readonly IRepository<TextFile> _repository;
+        private readonly IFileRepository<TextFile> _repository;
         private readonly IConfiguration _iconfiguration;
-        public TextFileService(IRepository<TextFile> repository, IConfiguration iconfiguration)
+        private readonly UserRepository _userRepository;
+        public TextFileService(IFileRepository<TextFile> repository, IConfiguration iconfiguration,
+                               UserRepository userRepository)
         {
             _repository = repository;
             _iconfiguration = iconfiguration;
+            _userRepository = userRepository;   
         }
 
         public async Task<TextFileDTO> DownloadAsync(string key)
@@ -48,24 +51,26 @@ namespace SecretsSharing.Service.impl
             });
         }
 
-        public async Task<UrlResponse> UploadAsync(TextFileDTO textFileDTO)
+        public async Task<string> UploadAsync(Guid userId, TextFileRequestDTO textFileRequestDTO)
         {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+            {
+                Console.WriteLine("throw");
+            }
+
             var textFile = new TextFile()
             {
                 Id = Guid.NewGuid(),
-                Name = textFileDTO.Name,
-                Text = textFileDTO.Text,
+                Name = textFileRequestDTO.Name,
+                Text = textFileRequestDTO.Text,
                 AddDate = DateTime.Now,
-
+                User= user,
             };
             await _repository.CreateAsync(textFile);
             string url = _iconfiguration.GetValue<string>("UrlTextFile")
                        + Convert.ToBase64String(Encoding.UTF8.GetBytes(Convert.ToString(textFile.Id)));
-            return new UrlResponse()
-            {
-                Url = url
-            };
-            //return new { url };
+            return url;
         }
 
         public async Task DeleteAsync(string key)

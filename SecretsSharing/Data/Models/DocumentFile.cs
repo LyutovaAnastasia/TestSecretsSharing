@@ -8,5 +8,8 @@ namespace SecretsSharing.Data.Models
         public string Name { get; set; }
         public string FilePath { get; set; }
         public DateTime AddDate { get; set; }
+        public User User { get; set; }
+        public Guid UserId { get; set; }
+
     }
 }

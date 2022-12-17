@@ -1,0 +1,42 @@
+ssh root@81.163.28.113
+sudo apt-get update
+sudo apt-get upgrade
+
+docker run --name postgres -e POSTGRES_PASSWORD=qwerty -p 5432:5432 -v postgres-data:/var/lib/postgresql/data -d postgres
+
+// удалить
+docker ps -a
+docker stop $(docker ps -a -q)
+docker rm $(docker ps -a -q)
+
+// чтобы перезалить
+ps -aux | less  найти номер
+kill -9 35155   убить
+rm *.jar        удалить
+
+
+jobs -l / процессы
+fg %1 / на переднем фоне
+bg %1 / возобновить в фоне
+
+
+docker volume ls
+docker volume rm $(docker volume ls -q)
+docker-compose rm -v
+docker rmi IMAGE_ID_HERE
+docker rmi 56a30a23d4fd
+docker images -a
+
+
+docker-compose ps
+docker inspect service_name | grep "IPAddress"
+
+docker-compose exec postgres-server_1 ls -al /docker-entrypoint-initdb.d/
+
+docker rm -f $(docker ps -qa); docker volume rm $(docker volume ls -q);
+
+atop -r /var/log/atop/atop_20220301 -b 10:10:00 -e 10:11:00
+
+
+Admin
+flvbycthdth
