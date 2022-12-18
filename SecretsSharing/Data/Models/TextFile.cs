@@ -1,16 +1,11 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-
+﻿
 namespace SecretsSharing.Data.Models
 {
-    public class TextFile
+    /// <summary>
+    /// Class for text file model.
+    /// </summary>
+    public class TextFile : Content
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
         public string Text { get; set; }
-        public DateTime AddDate { get; set; }
-        public User User { get; set; }
-        public Guid UserId { get; set; }
-
     }
 }

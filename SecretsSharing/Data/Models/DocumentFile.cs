@@ -1,15 +1,11 @@
-﻿using System;
-
+﻿
 namespace SecretsSharing.Data.Models
 {
-    public class DocumentFile
+    /// <summary>
+    /// Class for document file model.
+    /// </summary>
+    public class DocumentFile : Content
     {
-        public Guid Id { get; set; }
-        public string Name { get; set; }
         public string FilePath { get; set; }
-        public DateTime AddDate { get; set; }
-        public User User { get; set; }
-        public Guid UserId { get; set; }
-
     }
 }

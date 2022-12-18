@@ -2,6 +2,9 @@
 
 namespace SecretsSharing.DTO
 {
+    /// <summary>
+    /// Class DTO for document file.
+    /// </summary>
     public class DocumentFileDTO
     {
         public string Name { get; set; }

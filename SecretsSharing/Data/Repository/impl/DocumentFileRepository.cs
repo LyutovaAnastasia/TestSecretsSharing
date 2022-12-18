@@ -16,81 +16,55 @@ namespace SecretsSharing.Data.Repository.impl
             _context = context;
         }
 
-        // exception
         public async Task<DocumentFile> GetByIdAsync(Guid id)
         {
             try
             {
-                
-                if (id != Guid.Empty)
-                {
-                    return await _context.DocumentFiles.FirstOrDefaultAsync(t => t.Id == id) ?? null;
-                }
-                else
-                {
-                    return null;
-                }
+                return await _context.DocumentFiles.FirstOrDefaultAsync(t => t.Id == id);
             }
-            catch (Exception)
+            catch
             {
-                throw;
+                throw new Exception("Document file not found.");
             }
         }
-
-        // exception
-        public async Task<IEnumerable<DocumentFile>> GetAllByUserIdAsync(Guid userId)
+        
+        public async Task<IEnumerable<DocumentFile>> GetAllByUserIdAsync(int userId)
         {
             try
             {
-                if (userId != Guid.Empty)
-                {
-                    return await _context.DocumentFiles.Where(d => d.UserId == userId).ToListAsync() ?? null;
-                }
-                else
-                {
-                    return null;
-                }
+                return await _context.DocumentFiles.Where(d => d.UserId == userId).ToListAsync() ?? null;
             }
-            catch (Exception)
+            catch
             {
-                throw;
+                throw new Exception("Failed to get document files.");
             }
 
         }
 
-        // exception
         public async Task CreateAsync(DocumentFile documentFile)
         {
             try
             {
-                if (documentFile != null)
-                { 
-                    _context.Entry(documentFile).State = EntityState.Added;
-                    await _context.SaveChangesAsync();
-                }
+                _context.Entry(documentFile).State = EntityState.Added;
+                await _context.SaveChangesAsync();
             }
-            catch (Exception)
+            catch
             {
-                throw;
+                throw new Exception("Failed to create document files.");
             }
         }
 
-        // exception
         public async Task DeleteAsync(DocumentFile documentFile)
         {
             try
             {
-                if (documentFile != null)
-                {
-                    _context.Entry(documentFile).State = EntityState.Deleted;
-                    await _context.SaveChangesAsync();
-                }
+                _context.Entry(documentFile).State = EntityState.Deleted;
+                await _context.SaveChangesAsync();
             }
-            catch (Exception)
+            catch
             {
-                throw;
+                throw new Exception("Failed to delete document files.");
             }
-
         }
     }
 }

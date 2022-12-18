@@ -1,66 +1,131 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using SecretsSharing.Service.impl;
 using SecretsSharing.DTO;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using SecretsSharing.Data.Repository;
+using SecretsSharing.Util;
+using SecretsSharing.Service;
+using System;
 
 namespace SecretsSharing.Controllers
 {
+    /// <summary>
+    /// Class controller for document file.
+    /// </summary>
     [ApiController]
     [Route("rest/document")]
     public class DocumentFileController : ControllerBase
     {
 
-        private readonly DocumentFileService _service;
-        private readonly IConfiguration _iconfiguration;
+        private readonly DocumentFileService _documentFileService;
+        private readonly UserService _userService;
+        private readonly FileUtils _fileUtils;
 
-        // user 58e707b7-22ec-478e-8f0b-124a35e98b65
-
-        public DocumentFileController(DocumentFileService service, IConfiguration iconfiguration)
+        public DocumentFileController(DocumentFileService service,
+                                      FileUtils fileUtils, UserService userService)
         {
-           _service = service;
-            _iconfiguration = iconfiguration;
+            _documentFileService = service;
+            _fileUtils = fileUtils;
+            _userService = userService;
         }
 
+        /// <summary>
+        /// Downloading a file from the storage.
+        /// </summary>
+        /// <param name="key">Url file key.</param>
+        /// <returns>Response status.</returns>
         [HttpGet("download/{key}")]
         public async Task<IActionResult> DownloadAsync(string key)
         {
-            var result = await _service.DownloadAsync(key);
-            if (result != null)
+            try
             {
-                var filePath = Path.Combine(_iconfiguration["VirtualPathParticle"], result.FilePath);
-                return File(filePath, "application/octet-stream", result.Name);
+                var id = _documentFileService.ConvertKeyToId(key);
+
+                // Downloads from database.
+                var result = await _documentFileService.GetByIdAsync(id);
+
+                // Downloads  from storage.
+                var content = await _fileUtils.DownloadFileAsync(result.FilePath);
+                var file = File(content, "application/octet-stream", result.Name);
+
+                var userSettingsDTO = await _userService.GetUserSettingsByIdAsync(result.UserId);
+                if (userSettingsDTO.AutoDeleteDocument)
+                {
+                    // Deleting from the storage.
+                    _fileUtils.DeleteFile(result.FilePath);
+
+                    // Deleting from the database.
+                    await _documentFileService.DeleteAsync(id);
+
+                }
+                return file;
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest();
+                return BadRequest(ex.Message);
             }
         }
 
+        /// <summary>
+        /// Getting all the user's document files.
+        /// </summary>
+        /// <param name="userId">List of user's document files.</param>
+        /// <returns></returns>
         [HttpGet("getAll/{userId}")]
-        public async Task<IEnumerable<DocumentFileDTO>> GetFilesAsync(Guid userId)
+        public async Task<IEnumerable<DocumentFileDTO>> GetFilesAsync(int userId)
         {
-            return await _service.GetFilesAsync(userId);
+            return await _documentFileService.GetFilesAsync(userId);
         }
 
+        /// <summary>
+        /// Uploading a file to the database.
+        /// </summary>
+        /// <param name="userId">User id.</param>
+        /// <param name="file">The file to be uploaded.</param>
+        /// <returns>Response status.</returns>
         [HttpPost("upload/{userId}")]
-        public async Task<IActionResult> UploadAsync(Guid userId, IFormFile file)
+        public async Task<IActionResult> UploadAsync(int userId, IFormFile file)
         {
-            var result = await _service.UploadAsync(userId, file);
-            return result != null ? Ok(new { result }) : BadRequest(new { message = "Empty file" });  
+            try
+            {
+                // Upload file in the storage.
+                var fileInfo = await _fileUtils.UploadFileAsync(file);
+                // Create file in database.
+                var result = await _documentFileService.CreateAsync(userId, fileInfo);
+                return Ok(new { result });
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
-
+        /// <summary>
+        /// Deleting a document file from the database.
+        /// </summary>
+        /// <param name="key">Url file key.</param>
+        /// <returns>Response status.</returns>
         [HttpDelete("delete/{key}")]
-        public async Task DeleteAsync(string key)
+        public async Task<IActionResult> DeleteAsync(string key)
         {
-            await _service.DeleteAsync(key);
+            try
+            {
+                var id = _documentFileService.ConvertKeyToId(key);
+
+                var result = await _documentFileService.GetByIdAsync(id);
+                // Deleting from storage.
+                _fileUtils.DeleteFile(result.FilePath);
+
+                // Deleting from the database.
+                await _documentFileService.DeleteAsync(id);
+                return Ok();
+              
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

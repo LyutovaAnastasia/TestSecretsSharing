@@ -16,81 +16,55 @@ namespace SecretsSharing.Data.Repository.impl
             _context = context;
         }
 
-        // exception
         public async Task<TextFile> GetByIdAsync(Guid id)
         {
             try
             {
-                
-                if (id != Guid.Empty)
-                {
-                    return await _context.TextFiles.FirstOrDefaultAsync(t => t.Id == id) ?? null;
-                }
-                else
-                {
-                    return null;
-                }
+                return await _context.TextFiles.FirstOrDefaultAsync(t => t.Id == id);
             }
-            catch (Exception)
+            catch
             {
-                throw;
+                throw new Exception("Text file not found.");
             }
-
-           
         }
 
         // exception
-        public async Task<IEnumerable<TextFile>> GetAllByUserIdAsync(Guid userId)
+        public async Task<IEnumerable<TextFile>> GetAllByUserIdAsync(int userId)
         {
             try
             {
-                if (userId != Guid.Empty)
-                {
-                    return await _context.TextFiles.Where(t => t.UserId == userId).ToListAsync() ?? null;
-                }
-                else
-                {
-                    return null;
-                }
+                return await _context.TextFiles.Where(t => t.UserId == userId).ToListAsync() ?? null;
             }
-            catch (Exception)
+            catch
             {
-                throw;
+                throw new Exception("Failed to get text files.");
             }
 
         }
 
-        // exception
         public async Task CreateAsync(TextFile textFile)
         {
             try
             {
-                if (textFile != null)
-                {
-                    _context.Entry(textFile).State = EntityState.Added;
-                    await _context.SaveChangesAsync();
-                }
+                _context.Entry(textFile).State = EntityState.Added;
+                await _context.SaveChangesAsync();
             }
-            catch (Exception)
+            catch
             {
-                throw;
+                throw new Exception("Failed to create text file.");
             }
         }
 
-        // exception
         public async Task DeleteAsync(TextFile textFile)
         {
             try
             {
-                if (textFile != null)
-                {
-                    _context.Entry(textFile).State = EntityState.Deleted;
-                    await _context.SaveChangesAsync();
-                }
+                _context.Entry(textFile).State = EntityState.Deleted;
+                await _context.SaveChangesAsync();
             }
-            catch (Exception)
+            catch
             {
-                throw;
+                throw new Exception("Failed to delete text file.");
             }
 
         }

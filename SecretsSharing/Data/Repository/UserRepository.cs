@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SecretsSharing.Data.Models;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using SecretsSharing.DTO;
 
 namespace SecretsSharing.Data.Repository
 {
@@ -15,24 +15,53 @@ namespace SecretsSharing.Data.Repository
             _context = context;
         }
 
-        // exception
-        public async Task<User> GetByIdAsync(Guid id)
+        public async Task<User> GetByIdAsync(int id)
         {
             try
             {
-
-                if (id != Guid.Empty)
-                {
-                    return await _context.Users.FirstOrDefaultAsync(t => t.Id == id) ?? null;
-                }
-                else
-                {
-                    return null;
-                }
+                return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
             }
-            catch (Exception)
+            catch
             {
-                throw;
+                throw new Exception("User no found.");
+            }
+        }
+
+        public async Task<User> GetByEmailAsync(string email)
+        {
+            try
+            {
+                return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+            }
+            catch
+            {
+                throw new Exception("User no found.");
+            }
+        }
+
+        public async Task CreateAsync(User user)
+        {
+            try
+            {
+                _context.Entry(user).State = EntityState.Added;
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                throw new Exception("Failed to create user.");
+            }
+        }
+
+        public async Task SetUserSettingsAsync(User user)
+        {  
+            try
+            {
+                _context.Entry(user).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
+            catch
+            {
+                throw new Exception("Failed to update user.");
             }
         }
 

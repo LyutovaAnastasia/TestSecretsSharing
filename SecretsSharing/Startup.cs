@@ -12,7 +12,7 @@ using SecretsSharing.Data.Repository;
 using SecretsSharing.Data.Repository.impl;
 using SecretsSharing.DTO;
 using SecretsSharing.Service;
-using SecretsSharing.Service.impl;
+using SecretsSharing.Util;
 
 namespace SecretsSharing
 {
@@ -38,10 +38,13 @@ namespace SecretsSharing
             services.AddControllers();
             services.AddTransient<IFileRepository<TextFile>, TextFileRepository>();
             services.AddTransient<IFileRepository<DocumentFile>, DocumentFileRepository>();
-            //services.AddTransient<IService<TextFileDTO, UrlResponse> , TextFileService>();
+            services.AddTransient<UserRepository>();
+
             services.AddTransient<DocumentFileService>();
             services.AddTransient<TextFileService>();
-            services.AddTransient<UserRepository>();
+            services.AddTransient<UserService>();
+            services.AddSingleton<FileUtils>();
+           
 
             // Config DBContext with PostgreSQl
             services.AddDbContext<AppDbContext>(options => options.UseNpgsql(DbConnectionString));

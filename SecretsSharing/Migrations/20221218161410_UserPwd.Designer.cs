@@ -10,8 +10,8 @@ using SecretsSharing.Data;
 namespace SecretsSharing.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20221217042052_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20221218161410_UserPwd")]
+    partial class UserPwd
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -36,8 +36,8 @@ namespace SecretsSharing.Migrations
                     b.Property<string>("Name")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -61,8 +61,8 @@ namespace SecretsSharing.Migrations
                     b.Property<string>("Text")
                         .HasColumnType("text");
 
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uuid");
+                    b.Property<int>("UserId")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -73,17 +73,24 @@ namespace SecretsSharing.Migrations
 
             modelBuilder.Entity("SecretsSharing.Data.Models.User", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
-                    b.Property<bool>("AutoDelete")
+                    b.Property<bool>("AutoDeleteDocument")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AutoDeleteText")
                         .HasColumnType("boolean");
 
                     b.Property<string>("Email")
                         .HasColumnType("text");
 
-                    b.Property<string>("Password")
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordSalt")
                         .HasColumnType("text");
 
                     b.HasKey("Id");
