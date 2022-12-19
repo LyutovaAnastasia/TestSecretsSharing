@@ -5,18 +5,17 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SecretsSharing.Data;
 using SecretsSharing.Data.Models;
 using SecretsSharing.Data.Repository;
 using SecretsSharing.Data.Repository.impl;
-using SecretsSharing.DTO;
 using SecretsSharing.Service;
 using SecretsSharing.Service.impl;
 using SecretsSharing.Util;
 using SecretsSharing.Utils;
+using System;
 using System.Text;
 
 namespace SecretsSharing
@@ -26,8 +25,6 @@ namespace SecretsSharing
         public string DbConnectionString { get; set; }
         public Startup(IConfiguration configuration)
         {
-            //var builder = new ConfigurationBuilder().AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(), "Properties", "launchSettings.json"));
-            //Configuration = builder.Build();
            Configuration = configuration;
            DbConnectionString = Configuration.GetConnectionString("DbConnectionString");
         }
@@ -52,6 +49,15 @@ namespace SecretsSharing
             services.AddSingleton<FileUtils>();
             services.AddSingleton<JwtUtils>();
 
+            // Config DBContext with PostgreSQl
+            var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
+            var dbPort = Environment.GetEnvironmentVariable("DB_PORT");
+            var dbName = Environment.GetEnvironmentVariable("DB_NAME");
+            var dbUser = Environment.GetEnvironmentVariable("DB_USER");
+            var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+            var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword}";
+            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>
                     {
@@ -68,10 +74,6 @@ namespace SecretsSharing
                             )
                         };
                     });
-
-
-            // Config DBContext with PostgreSQl
-            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(DbConnectionString));
 
             services.AddSwaggerGen(c =>
             {
@@ -107,6 +109,8 @@ namespace SecretsSharing
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            DataManagementService.MigrateDatabase(app);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
