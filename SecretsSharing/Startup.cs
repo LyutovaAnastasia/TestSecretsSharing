@@ -50,13 +50,7 @@ namespace SecretsSharing
             services.AddSingleton<JwtUtils>();
 
             // Config DBContext with PostgreSQl
-            var dbHost = Environment.GetEnvironmentVariable("DB_HOST");
-            var dbPort = Environment.GetEnvironmentVariable("DB_PORT");
-            var dbName = Environment.GetEnvironmentVariable("DB_NAME");
-            var dbUser = Environment.GetEnvironmentVariable("DB_USER");
-            var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
-            var connectionString = $"Host={dbHost};Port={dbPort};Database={dbName};Username={dbUser};Password={dbPassword}";
-            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
+            services.AddDbContext<AppDbContext>(options => options.UseNpgsql(DbConnectionString));
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                     .AddJwtBearer(options =>

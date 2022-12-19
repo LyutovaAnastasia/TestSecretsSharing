@@ -8,6 +8,7 @@ using SecretsSharing.DTO;
 using Microsoft.AspNetCore.Mvc;
 using SecretsSharing.Data.Models;
 using SecretsSharing.Service.impl;
+using Microsoft.AspNetCore.Hosting;
 
 namespace SecretsSharing.Util
 {
@@ -19,15 +20,18 @@ namespace SecretsSharing.Util
         
         private readonly IConfiguration _iconfiguration;
         private readonly ILogger<DocumentFileService> _logger;
+        private readonly IWebHostEnvironment _env;
 
         private readonly long _fileSizeLimit;
 
         public FileUtils(IConfiguration iconfiguration,
-                         ILogger<DocumentFileService> logger)
+                         ILogger<DocumentFileService> logger,
+                         IWebHostEnvironment env)
         {
             _iconfiguration = iconfiguration;
             _logger = logger;
             _fileSizeLimit = _iconfiguration.GetValue<long>("FileSizeLimit");
+            _env = env;
         }
 
         /// <summary>
@@ -39,7 +43,7 @@ namespace SecretsSharing.Util
         {
             try
             {
-                var filePath = Path.Combine(_iconfiguration["StoredFiles"], path);
+                var filePath = Path.Combine(_env.ContentRootPath, _iconfiguration["StoredFiles"], path);
                 return await File.ReadAllBytesAsync(filePath);  
             }
             catch (Exception)
@@ -64,7 +68,7 @@ namespace SecretsSharing.Util
                
                 filePath = CreateFilePath(file);
 
-                using (var stream = File.Create(Path.Combine(_iconfiguration["StoredFiles"], filePath)))
+                using (var stream = File.Create(Path.Combine(_env.ContentRootPath, _iconfiguration["StoredFiles"], filePath)))
                 {
                     await file.CopyToAsync(stream);
                 }
@@ -94,7 +98,7 @@ namespace SecretsSharing.Util
             if (path == null)
                 throw new Exception("Invalid path.");
 
-            var filePath = Path.Combine(_iconfiguration["StoredFiles"], path);
+            var filePath = Path.Combine(_env.ContentRootPath, _iconfiguration["StoredFiles"], path);
 
             if (!File.Exists(filePath))
                 throw new Exception("File is not exist.");

@@ -65,7 +65,7 @@ namespace SecretsSharing.Controllers
         /// </summary>
         /// <param name="id">User id.</param>
         /// <returns>Auto-deletion files settings.</returns>
-        [HttpGet("setSettings/{id}")]
+        [HttpGet("getSettings/{id}")]
         public async Task<IActionResult> GetUserSettingsAsync(int id)
         {
             try
@@ -84,7 +84,7 @@ namespace SecretsSharing.Controllers
         /// <param name="id">User id.</param>
         /// <param name="userSettingsDTO">New user settings auto delete files</param>
         /// <returns>Response status.</returns>
-        [HttpPost("getSettings/{id}")]
+        [HttpPost("setSettings/{id}")]
         public async Task<IActionResult> SetUserSettingsAsync(int id, [FromBody] UserSettingsDTO userSettingsDTO)
         {
             try
