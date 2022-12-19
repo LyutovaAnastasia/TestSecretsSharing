@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using System;
 using SecretsSharing.DTO;
 
-namespace SecretsSharing.Data.Repository
+namespace SecretsSharing.Data.Repository.impl
 {
-    public class UserRepository
+    public class UserRepository : IUserRepository
     {
         private readonly AppDbContext _context;
 
@@ -17,26 +17,13 @@ namespace SecretsSharing.Data.Repository
 
         public async Task<User> GetByIdAsync(int id)
         {
-            try
-            {
-                return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
-            }
-            catch
-            {
-                throw new Exception("User no found.");
-            }
+            
+            return await _context.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
         public async Task<User> GetByEmailAsync(string email)
         {
-            try
-            {
-                return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-            }
-            catch
-            {
-                throw new Exception("User no found.");
-            }
+            return await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
         }
 
         public async Task CreateAsync(User user)
@@ -53,7 +40,7 @@ namespace SecretsSharing.Data.Repository
         }
 
         public async Task SetUserSettingsAsync(User user)
-        {  
+        {
             try
             {
                 _context.Entry(user).State = EntityState.Modified;

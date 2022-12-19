@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -5,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using SecretsSharing.Data;
 using SecretsSharing.Data.Models;
@@ -12,7 +14,10 @@ using SecretsSharing.Data.Repository;
 using SecretsSharing.Data.Repository.impl;
 using SecretsSharing.DTO;
 using SecretsSharing.Service;
+using SecretsSharing.Service.impl;
 using SecretsSharing.Util;
+using SecretsSharing.Utils;
+using System.Text;
 
 namespace SecretsSharing
 {
@@ -38,13 +43,32 @@ namespace SecretsSharing
             services.AddControllers();
             services.AddTransient<IFileRepository<TextFile>, TextFileRepository>();
             services.AddTransient<IFileRepository<DocumentFile>, DocumentFileRepository>();
-            services.AddTransient<UserRepository>();
+            services.AddTransient<IUserRepository, UserRepository>();
 
-            services.AddTransient<DocumentFileService>();
-            services.AddTransient<TextFileService>();
-            services.AddTransient<UserService>();
+            services.AddTransient<ITextFileService, TextFileService>();
+            services.AddTransient<IDocumentService, DocumentFileService>();
+            services.AddTransient<IUserServise, UserService>();
+
             services.AddSingleton<FileUtils>();
-           
+            services.AddSingleton<JwtUtils>();
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                    .AddJwtBearer(options =>
+                    {
+                        options.TokenValidationParameters = new TokenValidationParameters()
+                        {
+                            ValidateIssuer = true,
+                            ValidateAudience = true,
+                            ValidateLifetime = true,
+                            ValidateIssuerSigningKey = true,
+                            ValidAudience = Configuration["Jwt:Audience"],
+                            ValidIssuer = Configuration["Jwt:Issuer"],
+                            IssuerSigningKey = new SymmetricSecurityKey(
+                                Encoding.UTF8.GetBytes(Configuration["Jwt:Key"])
+                            )
+                        };
+                    });
+
 
             // Config DBContext with PostgreSQl
             services.AddDbContext<AppDbContext>(options => options.UseNpgsql(DbConnectionString));
@@ -52,6 +76,31 @@ namespace SecretsSharing
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "SecretsSharing", Version = "v1" });
+
+                // To Enable authorization using Swagger (JWT)    
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
+                {
+                    Name = "Authorization",
+                    Type = SecuritySchemeType.ApiKey,
+                    Scheme = "Bearer",
+                    BearerFormat = "JWT",
+                    In = ParameterLocation.Header,
+                    Description = "Enter 'Bearer' [space] and then your valid token in the text input below.\r\n\r\nExample: \"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\"",
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            }
+                        },
+                        new string[] {}
+                    }
+                });
             });
         }
 
@@ -69,6 +118,7 @@ namespace SecretsSharing
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

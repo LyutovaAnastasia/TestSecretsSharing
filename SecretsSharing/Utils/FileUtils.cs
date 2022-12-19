@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using SecretsSharing.DTO;
 using Microsoft.AspNetCore.Mvc;
 using SecretsSharing.Data.Models;
-using SecretsSharing.Service;
+using SecretsSharing.Service.impl;
 
 namespace SecretsSharing.Util
 {
@@ -115,7 +115,16 @@ namespace SecretsSharing.Util
         private void ValidateFile(IFormFile file)
         {
             string info;
+
             // Null validation
+            if (file == null)
+            {
+                info = "The file is Null.";
+                _logger.LogInformation(info);
+                throw new Exception(info);
+            }
+
+            // Null size validation
             if (file.Length <= 0)
             {
                 info = "The file is Empty.";

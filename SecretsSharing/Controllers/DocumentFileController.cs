@@ -3,27 +3,28 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using SecretsSharing.DTO;
 using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
 using SecretsSharing.Util;
 using SecretsSharing.Service;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SecretsSharing.Controllers
 {
     /// <summary>
     /// Class controller for document file.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("rest/document")]
     public class DocumentFileController : ControllerBase
     {
 
-        private readonly DocumentFileService _documentFileService;
-        private readonly UserService _userService;
+        private readonly IDocumentService _documentFileService;
+        private readonly IUserServise _userService;
         private readonly FileUtils _fileUtils;
 
-        public DocumentFileController(DocumentFileService service,
-                                      FileUtils fileUtils, UserService userService)
+        public DocumentFileController(IDocumentService service,
+                                      FileUtils fileUtils, IUserServise userService)
         {
             _documentFileService = service;
             _fileUtils = fileUtils;
@@ -34,7 +35,8 @@ namespace SecretsSharing.Controllers
         /// Downloading a file from the storage.
         /// </summary>
         /// <param name="key">Url file key.</param>
-        /// <returns>Response status.</returns>
+        /// <returns>Document file.</returns>
+        [AllowAnonymous]
         [HttpGet("download/{key}")]
         public async Task<IActionResult> DownloadAsync(string key)
         {
@@ -63,7 +65,7 @@ namespace SecretsSharing.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { messageError = ex.Message });
             }
         }
 
@@ -71,7 +73,7 @@ namespace SecretsSharing.Controllers
         /// Getting all the user's document files.
         /// </summary>
         /// <param name="userId">List of user's document files.</param>
-        /// <returns></returns>
+        /// <returns>List of user's document files.</returns>
         [HttpGet("getAll/{userId}")]
         public async Task<IEnumerable<DocumentFileDTO>> GetFilesAsync(int userId)
         {
@@ -83,7 +85,7 @@ namespace SecretsSharing.Controllers
         /// </summary>
         /// <param name="userId">User id.</param>
         /// <param name="file">The file to be uploaded.</param>
-        /// <returns>Response status.</returns>
+        /// <returns>File access url.</returns>
         [HttpPost("upload/{userId}")]
         public async Task<IActionResult> UploadAsync(int userId, IFormFile file)
         {
@@ -97,7 +99,7 @@ namespace SecretsSharing.Controllers
             }
             catch(Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { messageError = ex.Message });
             }
         }
 
@@ -120,11 +122,10 @@ namespace SecretsSharing.Controllers
                 // Deleting from the database.
                 await _documentFileService.DeleteAsync(id);
                 return Ok();
-              
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { messageError = ex.Message });
             }
         }
     }

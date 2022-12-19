@@ -3,24 +3,31 @@ using SecretsSharing.Service;
 using SecretsSharing.DTO;
 using System.Threading.Tasks;
 using System;
-using System.Threading;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SecretsSharing.Controllers
 {
     /// <summary>
     /// Class controller for user.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("rest/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly UserService _userService;
+        private readonly IUserServise _userService;
 
-        public UserController(UserService userService)
+        public UserController(IUserServise userService)
         {
             _userService = userService;
         }
 
+        /// <summary>
+        /// Registration for the user.
+        /// </summary>
+        /// <param name="userRequest">User data for registration.</param>
+        /// <returns>Information about the registered user.</returns>
+        [AllowAnonymous]
         [HttpPost("registration")]
         public async Task<IActionResult> RegistrationAsync([FromBody] UserRequestDTO userRequest)
         {
@@ -30,10 +37,16 @@ namespace SecretsSharing.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { messageError = ex.Message });
             }
         }
 
+        /// <summary>
+        /// User login and jwt token creation.
+        /// </summary>
+        /// <param name="userRequest">User data for login.</param>
+        /// <returns>Jwt token.</returns>
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync([FromBody] UserRequestDTO userRequest)
         {
@@ -43,7 +56,7 @@ namespace SecretsSharing.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { messageError = ex.Message });
             }
         }
 
@@ -51,7 +64,8 @@ namespace SecretsSharing.Controllers
         /// Method for getting the user's auto-deletion files settings.
         /// </summary>
         /// <param name="id">User id.</param>
-        [HttpGet("{id}")]
+        /// <returns>Auto-deletion files settings.</returns>
+        [HttpGet("setSettings/{id}")]
         public async Task<IActionResult> GetUserSettingsAsync(int id)
         {
             try
@@ -60,7 +74,7 @@ namespace SecretsSharing.Controllers
             }
             catch(Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { messageError = ex.Message });
             }
         }
 
@@ -69,7 +83,8 @@ namespace SecretsSharing.Controllers
         /// </summary>
         /// <param name="id">User id.</param>
         /// <param name="userSettingsDTO">New user settings auto delete files</param>
-        [HttpPost("{id}")]
+        /// <returns>Response status.</returns>
+        [HttpPost("getSettings/{id}")]
         public async Task<IActionResult> SetUserSettingsAsync(int id, [FromBody] UserSettingsDTO userSettingsDTO)
         {
             try
@@ -79,7 +94,7 @@ namespace SecretsSharing.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { messageError = ex.Message });
             }
         }
     }

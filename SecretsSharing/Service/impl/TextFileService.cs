@@ -2,25 +2,24 @@
 using SecretsSharing.Data.Models;
 using SecretsSharing.Data.Repository;
 using SecretsSharing.DTO;
-using SecretsSharing.Util;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SecretsSharing.Service
+namespace SecretsSharing.Service.impl
 {
     /// <summary>
     /// Class service for text files.
     /// </summary>
-    public class TextFileService
+    public class TextFileService : ITextFileService
     {
         private readonly IFileRepository<TextFile> _textFileRepository;
         private readonly IConfiguration _iconfiguration;
-        private readonly UserRepository _userRepository;
+        private readonly IUserRepository _userRepository;
         public TextFileService(IFileRepository<TextFile> repository, IConfiguration iconfiguration,
-                               UserRepository userRepository, FileUtils fileUtils)
+                               IUserRepository userRepository)
         {
             _textFileRepository = repository;
             _iconfiguration = iconfiguration;
@@ -35,6 +34,9 @@ namespace SecretsSharing.Service
         public async Task<TextFileDTO> GetByIdAsync(Guid id)
         {
             var textFile = await _textFileRepository.GetByIdAsync(id);
+            if (textFile == null)
+                throw new Exception("The text file is not found.");
+
             var result = new TextFileDTO
             {
                 Name = textFile.Name,
@@ -43,6 +45,9 @@ namespace SecretsSharing.Service
             };
 
             var user = await _userRepository.GetByIdAsync(textFile.UserId);
+            if (user == null)
+                throw new Exception("The user is not found.");
+
             if (user.AutoDeleteText)
             {
                 await _textFileRepository.DeleteAsync(textFile);
@@ -58,7 +63,11 @@ namespace SecretsSharing.Service
         /// <returns>List of user's text files.</returns>
         public async Task<IEnumerable<TextFileDTO>> GetFilesAsync(int userId)
         {
-            var sourse = await _textFileRepository.GetAllByUserIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new Exception("The user not found.");
+
+            var sourse = await _textFileRepository.GetAllByUserIdAsync(user.Id);
             return sourse.Select(t => new TextFileDTO
             {
                 Name = t.Name,
@@ -76,6 +85,8 @@ namespace SecretsSharing.Service
         public async Task<string> CreateAsync(int userId, TextFileRequestDTO textFileRequestDTO)
         {
             var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new Exception("The user not found.");
 
             var textFile = new TextFile()
             {
@@ -120,6 +131,5 @@ namespace SecretsSharing.Service
                 throw new Exception("Failed to conver key.");
             }
         }
-
     }
 }

@@ -1,12 +1,13 @@
 ﻿using System.Threading.Tasks;
-using System.Threading;
 using SecretsSharing.DTO;
 
 namespace SecretsSharing.Service
 {
     public interface IUserServise
     {
-        Task<UserResponseDTO> Registration(UserRequestDTO userRequest);
-        Task<UserResponseDTO> Login(UserRequestDTO userRequest);
+        Task<UserResponseDTO> RegistrationAsync(UserRequestDTO userRequest);
+        Task<string> LoginAsync(UserRequestDTO userRequest);
+        Task<UserSettingsDTO> GetUserSettingsByIdAsync(int id);
+        Task SetUserSettingsByIdAsync(int id, UserSettingsDTO userSettingsDTO);
     }
 }

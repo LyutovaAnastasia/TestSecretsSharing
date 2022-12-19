@@ -18,14 +18,7 @@ namespace SecretsSharing.Data.Repository.impl
 
         public async Task<TextFile> GetByIdAsync(Guid id)
         {
-            try
-            {
-                return await _context.TextFiles.FirstOrDefaultAsync(t => t.Id == id);
-            }
-            catch
-            {
-                throw new Exception("Text file not found.");
-            }
+            return await _context.TextFiles.FirstOrDefaultAsync(t => t.Id == id);
         }
 
         // exception

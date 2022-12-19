@@ -18,14 +18,7 @@ namespace SecretsSharing.Data.Repository.impl
 
         public async Task<DocumentFile> GetByIdAsync(Guid id)
         {
-            try
-            {
-                return await _context.DocumentFiles.FirstOrDefaultAsync(t => t.Id == id);
-            }
-            catch
-            {
-                throw new Exception("Document file not found.");
-            }
+            return await _context.DocumentFiles.FirstOrDefaultAsync(t => t.Id == id);
         }
         
         public async Task<IEnumerable<DocumentFile>> GetAllByUserIdAsync(int userId)

@@ -1,34 +1,28 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
 using SecretsSharing.Data.Models;
 using SecretsSharing.Data.Repository;
-using SecretsSharing.Data.Repository.impl;
 using SecretsSharing.DTO;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SecretsSharing.Service
+namespace SecretsSharing.Service.impl
 {
     /// <summary>
     /// Class service for document files.
     /// </summary>
-    public class DocumentFileService
+    public class DocumentFileService : IDocumentService
     {
         private readonly IFileRepository<DocumentFile> _documentFileRepository;
         private readonly IConfiguration _iconfiguration;
-        private readonly UserRepository _userRepository;
+        private readonly IUserRepository _userRepository;
 
         public DocumentFileService(IFileRepository<DocumentFile> repository,
                                    IConfiguration iconfiguration,
-                                   UserRepository userRepository)
+                                   IUserRepository userRepository)
         {
             _documentFileRepository = repository;
             _iconfiguration = iconfiguration;
@@ -42,7 +36,8 @@ namespace SecretsSharing.Service
         /// <returns>Document file.</returns>
         public async Task<DocumentFile> GetByIdAsync(Guid id)
         {
-            return await _documentFileRepository.GetByIdAsync(id);
+            return await _documentFileRepository.GetByIdAsync(id) ??
+                throw new Exception("The document file is not found.");
         }
 
         /// <summary>
@@ -52,7 +47,11 @@ namespace SecretsSharing.Service
         /// <returns>List of user's document files.</returns>
         public async Task<IEnumerable<DocumentFileDTO>> GetFilesAsync(int userId)
         {
-            var sourse = await _documentFileRepository.GetAllByUserIdAsync(userId);
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new Exception("The user not found.");
+
+            var sourse = await _documentFileRepository.GetAllByUserIdAsync(user.Id);
             return sourse.Select(d => new DocumentFileDTO
             {
                 Name = d.Name,
@@ -69,24 +68,21 @@ namespace SecretsSharing.Service
         public async Task<string> CreateAsync(int userId, FileInfoDTO fileInfo)
         {
             var user = await _userRepository.GetByIdAsync(userId);
-            if (user != null)
+            if (user == null)
+                throw new Exception("The user not found.");
+            
+            var documentFile = new DocumentFile()
             {
-                var documentFile = new DocumentFile()
-                {
-                    Id = Guid.NewGuid(),
-                    Name = fileInfo.FileName,
-                    FilePath = fileInfo.FilePath,
-                    AddDate = DateTime.Now,
-                    User = user,
+                Id = Guid.NewGuid(),
+                Name = fileInfo.FileName,
+                FilePath = fileInfo.FilePath,
+                AddDate = DateTime.Now,
+                User = user,
 
-                };
-                await _documentFileRepository.CreateAsync(documentFile);
+            };
+            await _documentFileRepository.CreateAsync(documentFile);
 
-                return documentFile.GetUrl(_iconfiguration["UrlDocumentFile"], documentFile.Id);
-            }
-
-            return null;
-
+            return documentFile.GetUrl(_iconfiguration["UrlDocumentFile"], documentFile.Id);
         }
 
         /// <summary>
@@ -106,13 +102,15 @@ namespace SecretsSharing.Service
         /// <returns>File Id.</returns>
         public Guid ConvertKeyToId(string key)
         {
-            string guid = Encoding.UTF8.GetString(Convert.FromBase64String(key));
-            if (!string.IsNullOrEmpty(guid))
+            try
             {
+                string guid = Encoding.UTF8.GetString(Convert.FromBase64String(key));
                 return Guid.Parse(guid);
-
             }
-            return Guid.Empty;
+            catch
+            {
+                throw new Exception("Failed to conver key.");
+            }
         }
     }
 }
